@@ -1,32 +1,39 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 require("dotenv").config();
 
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const authRoutes = require("./routers/auth");
-
 app.use("/auth", authRoutes);
 
+mongoose.connect(process.env.MONGO_URI, {
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+mongoose.connection.on("connected", async function () {
+  console.log(`[Mongodb database connected]`);
+});
+
+mongoose.connection.on("error", (error) => {
+  console.log("Eror in db connection", error);
+});
+
 app.use((err, req, res, next) => {
-  const error = err.message || "some internal error occured.!";
-  const statusCode = err.statusCode;
-  res.status(statusCode).json({
-    error: error,
+  console.log(err);
+  const message = err.message;
+  const status = err.status | 500;
+  res.status(status).json({
+    status: "Error",
+    message,
   });
 });
 
-mongoose
-  .connect(process.env.MONGO_DB_URI, {
-    useUnifiedTopology: true,
-    useNewUrlParser: true,
-  })
-  .then((connect) => {
-    app.listen(process.env.PORT);
-    console.log("SERVER RUNNING AND DB CONNECTED.");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+app.listen(process.env.PORT, () => {
+  console.log("SERVER RUNNING.", process.env.PORT);
+});
