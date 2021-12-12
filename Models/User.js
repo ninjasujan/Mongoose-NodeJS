@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const { v4 } = require("uuid");
-const { default: BaseError } = require("../Exception/Error");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
@@ -31,9 +30,12 @@ const userSchema = new Schema({
     },
 });
 
-// Mongoose instance methods
-userSchema.methods.encryptPassword = function (password) {
-    // Password encryption method
+// Mongoose instance methods - this points to the current doc object
+userSchema.methods.encryptPassword = async function (password) {
+    // schema level queries
+    // const user = await mongoose
+    //     .model("Users")
+    //     .find({ email: "sujan@appyhigh.com" });
     this.salt = crypto.randomBytes(16).toString("hex");
     this.password = crypto
         .pbkdf2Sync(password, this.salt, 1000, 64, `sha512`)
@@ -48,15 +50,15 @@ userSchema.methods.comparePassword = function (password) {
 };
 
 // Mongoose statis methods
-userSchema.static.validateUser = function (email) {
-    try {
-        const user = this.findOne({ email });
-        if (!user) {
-            throw new BaseError("Invalid email provided", 400);
-        }
-    } catch (error) {
-        throw error;
-    }
+userSchema.statics.findByName = async function (name) {
+    const users = await this.find({ firstName: new RegExp(name, "i") });
+    return users;
+};
+
+// Query helper
+userSchema.query.getName = async function (name) {
+    const user = this.where({ firstName: new RegExp(name, "i") });
+    return user;
 };
 
 module.exports = mongoose.model("Users", userSchema);

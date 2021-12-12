@@ -6,34 +6,36 @@ require("dotenv").config();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const authRoutes = require("./routers/auth");
-app.use("/auth", authRoutes);
+const authRoutes = require("./routers/user");
+const articleRoute = require("./routers/article");
+app.use("/user", authRoutes);
+app.use("/article", articleRoute);
 
 mongoose.connect(process.env.MONGO_URI, {
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 });
 
 mongoose.connection.on("connected", async function () {
-  console.log(`[Mongodb database connected]`);
+    console.log(`[Mongodb database connected]`);
 });
 
 mongoose.connection.on("error", (error) => {
-  console.log("Eror in db connection", error);
+    console.log("Eror in db connection", error);
 });
 
 app.use((err, req, res, next) => {
-  console.log(err);
-  const message = err.message;
-  const status = err.status | 500;
-  res.status(status).json({
-    status: "Error",
-    message,
-  });
+    console.log(err);
+    const message = err.message;
+    const status = err.status | 500;
+    res.status(status).json({
+        status: "Error",
+        message,
+    });
 });
 
 app.listen(process.env.PORT, () => {
-  console.log("SERVER RUNNING.", process.env.PORT);
+    console.log("SERVER RUNNING.", process.env.PORT);
 });
