@@ -9,10 +9,12 @@ const userSchema = new Schema({
         required: true,
         trim: true,
         maxlength: 30,
+        minlength: [4, "Not a valid last name"],
     },
     lastName: {
         type: String,
         trim: true,
+        maxlength: [20, "Last name length exceeded"],
     },
     email: {
         type: String,
@@ -27,6 +29,14 @@ const userSchema = new Schema({
     salt: {
         type: String,
         required: true,
+    },
+    platform: {
+        type: String,
+        enum: {
+            values: ["ios", "android", "web"],
+            message: "Not a valid platform field",
+            default: "android",
+        },
     },
 });
 
@@ -60,5 +70,16 @@ userSchema.query.getName = async function (name) {
     const user = this.where({ firstName: new RegExp(name, "i") });
     return user;
 };
+
+// Virtuals
+userSchema
+    .virtual("fullName")
+    .get(function () {
+        return this.firstName + " " + this.lastName;
+    })
+    .set((v) => {
+        console.log(v);
+        this.dateOfBirth = Date.now();
+    });
 
 module.exports = mongoose.model("Users", userSchema);
