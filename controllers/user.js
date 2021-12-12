@@ -59,3 +59,14 @@ exports.getUser = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.deleteUser = async (req, res, next) => {
+    try {
+        const { _id } = req.params;
+        const user = await userModel.findById(_id);
+        await user.deleteOne({ _id });
+        res.status(200).json({ message: "User deleted" });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -3,6 +3,8 @@ const crypto = require("crypto");
 const { v4 } = require("uuid");
 const Schema = mongoose.Schema;
 
+const { removeUserArticle } = require("../helper/article.helper");
+
 const userSchema = new Schema({
     firstName: {
         type: String,
@@ -21,6 +23,12 @@ const userSchema = new Schema({
         trim: true,
         required: true,
         unique: true,
+        validate: {
+            validator: function () {
+                return this.email.includes("@");
+            },
+            message: "Not a valid emil",
+        },
     },
     password: {
         type: String,
@@ -81,5 +89,25 @@ userSchema
         console.log(v);
         this.dateOfBirth = Date.now();
     });
+
+// Middleware use case
+/**
+ * Custom validation
+ * asynchronous tasks that a certain action triggers
+ * Removing dependent module
+ */
+// middleware - pre hooks
+userSchema.pre("deleteOne", { document: true }, async function (next) {
+    await removeUserArticle(this._id);
+    next();
+});
+
+userSchema.post(
+    "deleteOne",
+    { document: false, query: true },
+    async function (next) {
+        console.log("[Some Async Action to be trigger]");
+    }
+);
 
 module.exports = mongoose.model("Users", userSchema);
