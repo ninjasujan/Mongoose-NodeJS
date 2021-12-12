@@ -5,48 +5,55 @@ const Schema = mongoose.Schema;
 
 const { removeUserArticle } = require("../helper/article.helper");
 
-const userSchema = new Schema({
-    firstName: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 30,
-        minlength: [4, "Not a valid last name"],
-    },
-    lastName: {
-        type: String,
-        trim: true,
-        maxlength: [20, "Last name length exceeded"],
-    },
-    email: {
-        type: String,
-        trim: true,
-        required: true,
-        unique: true,
-        validate: {
-            validator: function () {
-                return this.email.includes("@");
+const userSchema = new Schema(
+    {
+        firstName: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 30,
+            minlength: [4, "Not a valid last name"],
+        },
+        lastName: {
+            type: String,
+            trim: true,
+            maxlength: [20, "Last name length exceeded"],
+        },
+        email: {
+            type: String,
+            trim: true,
+            required: true,
+            unique: true,
+            validate: {
+                validator: function () {
+                    return this.email.includes("@");
+                },
+                message: "Not a valid emil",
             },
-            message: "Not a valid emil",
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        salt: {
+            type: String,
+            required: true,
+        },
+        platform: {
+            type: String,
+            enum: {
+                values: ["ios", "android", "web"],
+                message: "Not a valid platform field",
+                default: "android",
+            },
         },
     },
-    password: {
-        type: String,
-        required: true,
-    },
-    salt: {
-        type: String,
-        required: true,
-    },
-    platform: {
-        type: String,
-        enum: {
-            values: ["ios", "android", "web"],
-            message: "Not a valid platform field",
-            default: "android",
-        },
-    },
-});
+    {
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+        timestamps: true,
+    }
+);
 
 // Mongoose instance methods - this points to the current doc object
 userSchema.methods.encryptPassword = async function (password) {
@@ -75,6 +82,7 @@ userSchema.statics.findByName = async function (name) {
 
 // Query helper
 userSchema.query.getName = async function (name) {
+    // this points to the query
     const user = this.where({ firstName: new RegExp(name, "i") });
     return user;
 };
@@ -110,4 +118,4 @@ userSchema.post(
     }
 );
 
-module.exports = mongoose.model("Users", userSchema);
+module.exports = mongoose.model("Users", userSchema, "persons");

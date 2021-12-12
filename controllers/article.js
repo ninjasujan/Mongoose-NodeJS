@@ -13,3 +13,18 @@ exports.createArticle = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getArticle = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        // const articles = await articleModel.find({ userId }).populate({
+        //     path: "userId",
+        //     match: { firstName: "someds" },
+        //     perDocumentLimit: 2,
+        // });
+        const articles = await articleModel.find({ userId }).populate("user");
+        res.status(200).json(articles);
+    } catch (error) {
+        next(error);
+    }
+};
